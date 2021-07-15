@@ -18,6 +18,9 @@ import { BTCRelayAPI, DefaultBTCRelayAPI } from "./parachain/btc-relay";
 import { DefaultReplaceAPI, ReplaceAPI } from "./parachain/replace";
 import { Network, networks } from "bitcoinjs-lib";
 import { BitcoinNetwork } from "./types/bitcoinTypes";
+import { DefaultIndexAPI, IndexAPI } from "./external/interbtc-index";
+import { INDEX_URL } from "./utils/constants";
+import { Configuration as IndexConfiguration } from "@interlay/interbtc-index-client";
 
 export * from "./factory";
 export * from "./parachain/transaction";
@@ -49,6 +52,7 @@ export interface InterBTCAPI {
     readonly replace: ReplaceAPI;
     readonly fee: FeeAPI;
     readonly nomination: NominationAPI;
+    readonly index: IndexAPI;
     setAccount(account: AddressOrPair, signer?: Signer): void;
     readonly account: AddressOrPair | undefined;
 }
@@ -73,6 +77,7 @@ export class DefaultInterBTCAPI implements InterBTCAPI {
     public readonly replace: ReplaceAPI;
     public readonly fee: FeeAPI;
     public readonly nomination: NominationAPI;
+    public readonly index: IndexAPI;
 
     constructor(readonly api: ApiPromise, network: BitcoinNetwork = "mainnet", private _account?: AddressOrPair) {
         const btcNetwork = getBitcoinNetwork(network);
@@ -90,6 +95,7 @@ export class DefaultInterBTCAPI implements InterBTCAPI {
         this.issue = new DefaultIssueAPI(api, btcNetwork, this.electrsAPI, _account);
         this.redeem = new DefaultRedeemAPI(api, btcNetwork, this.electrsAPI, _account);
         this.nomination = new DefaultNominationAPI(api, btcNetwork, this.electrsAPI, _account);
+        this.index = DefaultIndexAPI(new IndexConfiguration({ basePath: INDEX_URL }));
     }
 
     setAccount(account: AddressOrPair, signer?: Signer): void {
